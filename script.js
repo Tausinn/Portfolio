@@ -3,9 +3,9 @@ function toggleMenu() {
     const icon = document.querySelector(".hamburger-icon");
     menu.classList.toggle("open");
     icon.classList.toggle("open");
-  }
+}
 
-  function checkAnswers() {
+function checkAnswers() {
     let correctAnswers = 0;
     
     // Question 1
@@ -42,52 +42,85 @@ function toggleMenu() {
     document.getElementById("result").innerHTML = `You got ${correctAnswers} out of 5 correct.`;
 }
 
-/*toggle button*/
+/*
+  Theme initialization and toggle behavior
+  - Default: dark mode (unless user has previously chosen 'light' in localStorage)
+  - Clicking a .dark-mode-toggle button toggles the theme and saves preference
+  - Toggle buttons are initialized to the correct icon ('☀️' when dark, '🌙' when light)
+*/
 
-const toggleButtons = document.querySelectorAll('.dark-mode-toggle');
-const body = document.body;
+document.addEventListener('DOMContentLoaded', () => {
+    const body = document.body;
 
-// Add event listener to each button
-toggleButtons.forEach(button => {
-    button.addEventListener('click', () => {
-        body.classList.toggle('dark-mode');
+    // Load saved preference. If none, default to dark mode.
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        body.classList.remove('dark-mode');
+    } else if (savedTheme === 'dark') {
+        body.classList.add('dark-mode');
+    } else {
+        // Default to dark mode
+        body.classList.add('dark-mode');
+    }
 
-        // Update button icon
+    // Toggle button(s)
+    const toggleButtons = document.querySelectorAll('.dark-mode-toggle');
+
+    function updateToggleIcons() {
         toggleButtons.forEach(btn => {
             if (body.classList.contains('dark-mode')) {
-                btn.textContent =   '☀️'; // Switch to light mode icon
+                btn.textContent = '☀️'; // show sun to indicate you can switch to light
             } else {
-                btn.textContent = '🌙'; // Switch to dark mode icon
+                btn.textContent = '🌙'; // show moon to indicate you can switch to dark
             }
         });
-    });
-});
-
-/*contact form*/
-
-const form = document.querySelector("form");
-form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    
-    const formData = new FormData(form);
-    
-    const response = await fetch("/", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(formData).toString()
-    });
-    
-    if (response.ok) {
-        alert("Message sent successfully!");
-        form.reset(); // Clear the form
-    } else {
-        alert("Failed to send the message. Please try again.");
     }
-});
 
-/*progress bar*/
+    // Initialize icons
+    updateToggleIcons();
 
-document.querySelectorAll('.circle-progress').forEach(circle => {
-    const progress = circle.getAttribute('data-progress');
-    circle.style.setProperty('--progress', progress);
+    // Add event listeners (only if buttons exist)
+    if (toggleButtons.length > 0) {
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const isDark = body.classList.toggle('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateToggleIcons();
+            });
+        });
+    }
+
+    /*contact form*/
+    const form = document.querySelector("form");
+    if (form) {
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            
+            const formData = new FormData(form);
+            
+            try {
+                const response = await fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams(formData).toString()
+                });
+                
+                if (response.ok) {
+                    alert("Message sent successfully!");
+                    form.reset(); // Clear the form
+                } else {
+                    alert("Failed to send the message. Please try again.");
+                }
+            } catch (err) {
+                console.error('Form submit error:', err);
+                alert("Failed to send the message. Please check your connection and try again.");
+            }
+        });
+    }
+
+    /*progress bar*/
+    document.querySelectorAll('.circle-progress').forEach(circle => {
+        const progress = circle.getAttribute('data-progress');
+        circle.style.setProperty('--progress', progress);
+    });
 });
